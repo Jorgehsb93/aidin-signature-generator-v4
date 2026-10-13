@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Aidin Email Signature Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pink:#FC2E5C; --pink-light:#fff0f3;
+      --navy:#202236; --gray:#5E5F6C;
+      --dark:#1a1a1a; --gray-1:#f6f6f6; --gray-2:#e8e8e8;
+      --gray-3:#ccc; --gray-4:#999; --gray-5:#555; --white:#fff;
+      --radius:8px; --shadow:0 8px 28px rgba(0,0,0,0.10);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:"Poppins",sans-serif;background:var(--gray-1);color:var(--dark);min-height:100vh;}
+
+    /* Top bar */
+    .topbar{background:var(--white);border-bottom:1px solid var(--gray-2);padding:14px 24px;display:flex;align-items:center;gap:12px;}
+    .topbar img{height:32px;}
+    .topbar-sub{font-size:12px;color:var(--gray-4);border-left:1px solid var(--gray-2);padding-left:12px;}
+
+    /* Layout */
+    .layout{display:grid;grid-template-columns:400px 1fr;min-height:calc(100vh - 57px);}
+
+    /* Form panel */
+    .form-panel{background:var(--white);border-right:1px solid var(--gray-2);padding:24px;overflow-y:auto;}
+    .section-title{font-size:10px;font-weight:600;color:var(--gray-4);letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--gray-2);}
+    .field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+    .field label{font-size:12px;font-weight:600;color:var(--gray-5);}
+    .field input[type=text]{font-family:"Poppins",sans-serif;font-size:14px;background:var(--gray-1);border:1.5px solid var(--gray-2);border-radius:var(--radius);padding:10px 13px;outline:none;width:100%;transition:border-color .18s,box-shadow .18s,background .18s;}
+    .field input[type=text]:focus{border-color:var(--pink);background:var(--white);box-shadow:0 0 0 3px rgba(252,46,92,.1);}
+    .field input[type=text]::placeholder{color:var(--gray-3);}
+
+    /* Toggle blocks */
+    .toggle-block{border:1.5px solid var(--gray-2);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;background:var(--gray-1);}
+    .toggle-block.on{border-color:rgba(252,46,92,.35);background:var(--pink-light);}
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;}
+    .toggle-label{font-size:12px;font-weight:600;color:var(--gray-5);}
+    .toggle-body{margin-top:10px;display:none;}
+    .toggle-body.show{display:block;}
+    .toggle-body input{font-family:"Poppins",sans-serif;font-size:13px;background:var(--white);border:1.5px solid var(--gray-2);border-radius:6px;padding:8px 11px;outline:none;width:100%;}
+    .toggle-body input:focus{border-color:var(--pink);}
+    .toggle-body input::placeholder{color:var(--gray-3);}
+
+    /* Switch */
+    .switch{position:relative;width:40px;height:22px;flex-shrink:0;}
+    .switch input{opacity:0;width:0;height:0;}
+    .track{position:absolute;inset:0;background:var(--gray-3);border-radius:22px;cursor:pointer;transition:background .25s;}
+    .track::before{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 1px 4px rgba(0,0,0,.25);}
+    .switch input:checked + .track{background:var(--pink);}
+    .switch input:checked + .track::before{transform:translateX(18px);}
+
+    /* Upload */
+    .upload-zone{border:2px dashed var(--gray-2);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;background:var(--gray-1);position:relative;transition:border-color .2s,background .2s;}
+    .upload-zone:hover{border-color:var(--pink);background:var(--pink-light);}
+    .upload-zone.has-photo{border-color:#43a047;background:#f1f8f1;}
+    .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+    .upload-preview{width:56px;height:64px;border-radius:16px;object-fit:cover;object-position:top center;margin:0 auto 6px;display:block;border:2px solid var(--pink);}
+    .upload-icon{font-size:24px;margin-bottom:4px;}
+    .upload-text{font-size:13px;font-weight:600;color:var(--gray-5);}
+    .upload-sub{font-size:11px;color:var(--gray-4);margin-top:2px;}
+    .upload-ok{font-size:12px;color:#2e7d32;font-weight:600;margin-top:4px;}
+
+    /* Photo URL box */
+    .photo-url-box{background:#fffbea;border:1.5px solid #f5c518;border-radius:var(--radius);padding:12px 14px;margin-top:10px;}
+    .pu-title{font-size:11px;font-weight:700;color:#856404;margin-bottom:8px;}
+    .photo-url-box input[type=text]{font-family:"Poppins",sans-serif;font-size:13px;background:var(--white);border:1.5px solid #ddb;border-radius:6px;padding:8px 10px;outline:none;width:100%;}
+    .photo-url-box input:focus{border-color:var(--pink);}
+    .photo-url-box input::placeholder{color:var(--gray-3);}
+    .url-status{font-size:13px;font-weight:600;min-height:14px;margin-top:5px;}
+    .url-status.ok{color:#2e7d32;}
+    .url-status.err{color:#c62828;}
+    .pu-hint{font-size:11px;color:#856404;margin-top:8px;line-height:1.6;}
+    .pu-hint a{color:var(--pink);font-weight:600;}
+    .pu-hint code{background:#fff8dc;padding:1px 4px;border-radius:3px;font-size:10px;}
+
+    .sep{border:none;border-top:1px solid var(--gray-2);margin:14px 0;}
+    .btn-build{width:100%;padding:13px;font-family:"Poppins",sans-serif;font-size:14px;font-weight:600;background:var(--navy);color:#fff;border:none;border-radius:var(--radius);cursor:pointer;margin-top:6px;transition:background .18s,transform .15s;}
+    .btn-build:hover{background:#2d3052;transform:translateY(-1px);}
+    .form-err{font-size:12px;color:#c62828;text-align:center;min-height:16px;margin-top:6px;font-weight:500;}
+
+    /* Preview panel */
+    .preview-panel{padding:28px;display:flex;flex-direction:column;gap:20px;}
+    .preview-label{font-size:10px;font-weight:600;color:var(--gray-4);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;}
+    .preview-box{background:var(--white);border:1px solid var(--gray-2);border-radius:var(--radius);padding:28px 24px;min-height:160px;display:block;overflow-x:auto;}
+    .preview-placeholder{font-size:13px;color:var(--gray-3);}
+    .char-count{font-size:13px;font-weight:600;margin-top:8px;}
+    .char-count.safe{color:#2e7d32;}
+    .char-count.warn{color:#e65100;}
+    .char-count.over{color:#c62828;}
+    .code-label{font-size:10px;font-weight:600;color:var(--gray-4);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+    .code-note{font-size:11px;color:var(--gray-4);font-weight:400;text-transform:none;letter-spacing:0;}
+    .code-box{background:#161b22;border-radius:var(--radius);padding:14px 16px;max-height:180px;overflow-y:auto;border:1px solid #30363d;margin-bottom:14px;}
+    .code-box pre{font-family:"Courier New",monospace;font-size:9.5px;color:#8b949e;white-space:pre-wrap;word-break:break-word;line-height:1.6;}
+    .btn-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+    .btn-copy{font-family:"Poppins",sans-serif;padding:12px 0;font-size:13px;font-weight:600;border:none;border-radius:var(--radius);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s,box-shadow .15s;}
+    .btn-copy:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
+    .btn-gmail{background:#4285F4;color:#fff;}
+    .btn-html{background:var(--pink);color:#fff;}
+    .btn-download{background:var(--navy);color:#fff;}
+    .copy-msg{font-size:12px;font-weight:600;text-align:center;margin-top:10px;min-height:18px;}
+    .copy-msg.ok{color:#2e7d32;}
+    .copy-msg.err{color:#c62828;}
+
+    @media(max-width:750px){
+      .layout{grid-template-columns:1fr;}
+      .form-panel{border-right:none;border-bottom:1px solid var(--gray-2);}
+      .btn-row{grid-template-columns:1fr;}
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+function downloadImage() {
+  if (!lastHTMLpreview && !lastHTMLoutput) { flash("&#9888; Click Build Preview first.", "err"); return; }
+
+  // Create a temporary container with white background for rendering
+  var container = document.createElement("div");
+  container.style.cssText = "position:fixed;top:-9999px;left:-9999px;background:#ffffff;padding:20px;";
+  container.innerHTML = lastHTMLpreview || lastHTMLoutput;
+  document.body.appendChild(container);
+
+  html2canvas(container, {
+    backgroundColor: "#ffffff",
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+    logging: false
+  }).then(function(canvas) {
+    document.body.removeChild(container);
+    var link = document.createElement("a");
+    link.download = "aidin-signature.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    flash("&#10003; <strong>PNG downloaded!</strong> Use this image in any email client for pixel-perfect Poppins.", "ok");
+  }).catch(function(err) {
+    document.body.removeChild(container);
+    flash("&#10007; Download failed: " + err.message, "err");
+  });
+}
+</script>
+</head>
+<body>
+
+<div class="topbar">
+  <img src="data:image/png;base64,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" alt="Aidin">
+  <span class="topbar-sub">Email Signature Generator &mdash; Internal tool</span>
+</div>
+
+<div class="layout">
+
+  <!-- FORM PANEL -->
+  <div class="form-panel">
+    <div class="section-title">Profile Details</div>
+
+    <div class="field"><label>Full name *</label><input id="f-name" type="text" placeholder="e.g. Travis Duke"></div>
+    <div class="field"><label>Job title *</label><input id="f-title" type="text" placeholder="e.g. VP of Marketing"></div>
+    <div class="field"><label>Work email *</label><input id="f-email" type="text" placeholder="e.g. travis@myaidin.com"></div>
+
+    <!-- Phone toggle -->
+    <div class="toggle-block on" id="blk-phone">
+      <div class="toggle-row">
+        <span class="toggle-label">Phone number</span>
+        <label class="switch"><input type="checkbox" id="tog-phone" checked onchange="toggleBlk('phone')"><span class="track"></span></label>
+      </div>
+      <div class="toggle-body show" id="sub-phone">
+        <input id="f-phone" type="text" placeholder="(517) 420-6681">
+      </div>
+    </div>
+
+    <!-- LinkedIn toggle -->
+    <div class="toggle-block on" id="blk-li">
+      <div class="toggle-row">
+        <span class="toggle-label">LinkedIn button</span>
+        <label class="switch"><input type="checkbox" id="tog-li" checked onchange="toggleBlk('li')"><span class="track"></span></label>
+      </div>
+      <div class="toggle-body show" id="sub-li">
+        <input id="f-li" type="text" placeholder="https://linkedin.com/in/username">
+      </div>
+    </div>
+
+    <!-- Book a Meeting toggle -->
+    <div class="toggle-block on" id="blk-cta">
+      <div class="toggle-row">
+        <span class="toggle-label">Book a Meeting button</span>
+        <label class="switch"><input type="checkbox" id="tog-cta" checked onchange="toggleBlk('cta')"><span class="track"></span></label>
+      </div>
+      <div class="toggle-body show" id="sub-cta">
+        <input id="f-cta" type="text" placeholder="https://meetings.hubspot.com/yourlink">
+      </div>
+    </div>
+
+    <!-- Photo toggle -->
+    <div class="toggle-block on" id="blk-photo">
+      <div class="toggle-row">
+        <span class="toggle-label">&#128247; Profile photo</span>
+        <label class="switch"><input type="checkbox" id="tog-photo" checked onchange="toggleBlk('photo')"><span class="track"></span></label>
+      </div>
+      <div class="toggle-body show" id="sub-photo">
+        <div class="upload-zone" id="upload-zone" style="margin-top:10px;" onclick="document.getElementById('photo-file').click()">
+          <input type="file" id="photo-file" accept="image/*" onchange="handlePhoto(event)" style="display:none;">
+          <div id="upload-idle"><div class="upload-icon">&#128247;</div><div class="upload-text">Click to upload</div><div class="upload-sub">Shows in preview only</div></div>
+          <div id="upload-done" style="display:none;"><img id="upload-preview" class="upload-preview" src="" alt=""><div class="upload-ok" id="upload-ok-text">&#10003; Photo loaded</div><div class="upload-sub" style="margin-top:3px;">Click to change</div></div>
+        </div>
+        <div class="photo-url-box">
+          <div class="pu-title">&#128279; Photo URL &mdash; required for email</div>
+          <input type="text" id="f-photo-url" placeholder="https://imglink.cc/cdn/yourphoto.jpg" oninput="validatePhotoUrl()">
+          <div class="url-status" id="url-status"></div>
+          <div id="url-preview-wrap" style="display:none;margin-top:8px;text-align:center;">
+            <img id="url-preview-img" src="" alt="Preview"
+              style="width:54px;height:62px;border-radius:16px;object-fit:cover;object-position:top;border:2px solid #FC2E5C;"
+              onload="urlImgLoaded(true)" onerror="urlImgLoaded(false)">
+            <div id="url-preview-status" style="font-size:11px;margin-top:4px;font-weight:600;"></div>
+          </div>
+          <div class="pu-hint">
+            <strong style="color:#c62828;">&#9888; Crop your photo to a 7:8 portrait ratio first</strong> (slightly taller than wide, e.g. 350&times;400px). Use any photo editor or <a href="https://croppola.com" target="_blank">croppola.com</a><br>
+            Then upload to <a href="https://imglink.cc" target="_blank">imglink.cc</a> (free, no account) &rarr; copy the <strong>Direct link</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+    <button class="btn-build" onclick="buildPreview()">&#9658;&nbsp; Build Preview</button>
+    <div class="form-err" id="form-err"></div>
+  </div>
+
+  <!-- PREVIEW PANEL -->
+  <div class="preview-panel">
+    <div>
+      <div class="preview-label">Live Preview <span style="font-size:11px;color:#bbb;text-transform:none;letter-spacing:0;font-weight:400;">&mdash; uses uploaded photo</span></div>
+      <div class="preview-box" id="preview-box"><span class="preview-placeholder">Fill in your details and click Build Preview &rarr;</span></div>
+    </div>
+    <div>
+      <div class="code-label">Generated HTML <span class="code-note">&mdash; safe for Gmail &amp; HubSpot</span></div>
+      <div class="char-count" id="char-count"></div>
+      <div class="code-box" style="margin-top:8px;"><pre id="code-out">&lt;!-- HTML will appear here after Build Preview --&gt;</pre></div>
+      <div class="btn-row">
+        <button class="btn-copy btn-gmail" onclick="copyGmail()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          Copy for Gmail
+        </button>
+        <button class="btn-copy btn-html" onclick="copyHTML()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+          Copy HTML
+        </button>
+        <button class="btn-copy btn-download" onclick="downloadImage()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          Download PNG
+        </button>
+      </div>
+      <div class="copy-msg" id="copy-msg"></div>
+    </div>
+  </div>
+
+</div>
+<textarea id="hidden-copy-ta" style="display:none;" aria-hidden="true"></textarea>
+
+<script>
+var PINK    = "#FC2E5C";
+var NAVY    = "#202236";
+var GRAY    = "#5E5F6C";
+var LOGO    = "https://cdn.jsdelivr.net/gh/Jorgehsb93/aidin-signature-generator-v4@main/Logo.png";
+var LI_SVG  = "https://cdn.jsdelivr.net/gh/Jorgehsb93/aidin-signature-generator-v4@main/linkedin.png";
+
+var photoPreviewURI = "";
+var lastHTMLpreview = "";
+var lastHTMLoutput  = "";
+
+function handlePhoto(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    photoPreviewURI = ev.target.result;
+    document.getElementById("upload-idle").style.display = "none";
+    document.getElementById("upload-done").style.display = "block";
+    document.getElementById("upload-preview").src = photoPreviewURI;
+    document.getElementById("upload-ok-text").textContent = "\u2713 " + file.name;
+    document.getElementById("upload-zone").classList.add("has-photo");
+  };
+  reader.readAsDataURL(file);
+}
+
+function validatePhotoUrl() {
+  var url = document.getElementById("f-photo-url").value.trim();
+  var st   = document.getElementById("url-status");
+  var wrap = document.getElementById("url-preview-wrap");
+  var img  = document.getElementById("url-preview-img");
+  if (!url) { st.textContent = ""; wrap.style.display = "none"; return; }
+  if (/linkedin\.com/i.test(url)) { st.className="url-status err"; st.textContent="\u2717 LinkedIn URLs don't work in email. Use imglink.cc."; wrap.style.display="none"; return; }
+  if (/imgur\.com/i.test(url))    { st.className="url-status err"; st.textContent="\u2717 Imgur blocks images in email. Use imglink.cc."; wrap.style.display="none"; return; }
+  if (/ibb\.co/i.test(url))       { st.className="url-status err"; st.textContent="\u2717 ImgBB blocks images in email. Use imglink.cc."; wrap.style.display="none"; return; }
+  st.className = "url-status ok";
+  st.textContent = "\u23f3 Checking...";
+  wrap.style.display = "block";
+  var sep = url.indexOf("?") === -1 ? "?" : "&";
+  img.src = url + sep + "cb=" + Date.now();
+}
+
+function urlImgLoaded(ok) {
+  var st  = document.getElementById("url-preview-status");
+  var ust = document.getElementById("url-status");
+  if (ok) {
+    st.style.color = "#2e7d32"; st.textContent = "\u2713 Image loads correctly";
+    ust.className = "url-status ok"; ust.textContent = "\u2713 Direct image link \u2014 good to go";
+    if (document.getElementById("preview-box").innerHTML.indexOf("table") !== -1) buildPreview();
+  } else {
+    st.style.color = "#c62828"; st.textContent = "\u2717 Image failed to load \u2014 check the URL";
+    ust.className = "url-status err"; ust.textContent = "\u2717 URL didn't load. Copy the Direct link from imglink.cc.";
+  }
+}
+
+function toggleBlk(key) {
+  var on = document.getElementById("tog-" + key).checked;
+  document.getElementById("sub-" + key).classList.toggle("show", on);
+  document.getElementById("blk-" + key).classList.toggle("on", on);
+}
+
+function v(id)   { return (document.getElementById(id) || {}).value ? document.getElementById(id).value.trim() : ""; }
+function tog(id) { return document.getElementById("tog-" + id) ? document.getElementById("tog-" + id).checked : false; }
+function getInitials(n) { return n.split(" ").filter(Boolean).map(function(w){return w[0];}).join("").toUpperCase().slice(0,2) || "AI"; }
+
+function buildSignature(name, title, email, phone, photoSrc, liUrl, ctaUrl, showPhone, showLi, showCta, showPhoto) {
+  var ini = getInitials(name);
+  var FS = "'Poppins','Century Gothic',Arial,Helvetica,sans-serif";
+
+  // Photo: 81x93, radius 24
+  var avatar = "";
+  if (showPhoto) {
+    if (photoSrc) {
+      avatar = '<img src="' + photoSrc + '" width="100" height="115" alt="' + name + '" style="display:block;width:100px;height:115px;border-radius:30px;object-fit:cover;object-position:center top;border:none;">';
+    } else {
+      avatar = '<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;"><tr><td align="center" valign="middle" width="100" height="115" style="width:100px;height:115px;background:#e8e8e8;border-radius:30px;font-family:Arial,sans-serif;font-size:24px;font-weight:700;color:#999;">' + ini + '</td></tr></table>';
+    }
+  }
+
+  // Logo: 57px centered
+  var logo = '<img src="' + LOGO + '" width="100" alt="Aidin" style="display:inline-block;width:100px;height:auto;border:none;vertical-align:bottom;">';
+
+  // Spacer helper
+  function sp(h) { return '<tr><td bgcolor="#ffffff" style="height:' + h + 'px;font-size:0;line-height:0;background:#ffffff;">&nbsp;</td></tr>'; }
+
+  // Text rows — Name 20px, Title 13px, Contact 12px
+  var nameRow  = '<tr><td bgcolor="#ffffff" style="background:#ffffff;white-space:nowrap;line-height:1.1;"><span style="font-family:' + FS + ';font-size:20px;font-weight:600;color:' + NAVY + ';">' + name + '</span></td></tr>';
+  var titleRow = '<tr><td bgcolor="#ffffff" style="background:#ffffff;white-space:nowrap;line-height:1.2;"><span style="font-family:' + FS + ';font-size:13px;font-weight:500;color:' + PINK + ';">' + title + '</span></td></tr>';
+  var emailRow = email ? '<tr><td bgcolor="#ffffff" style="background:#ffffff;line-height:1.2;"><a href="mailto:' + email + '" style="font-family:' + FS + ';font-size:12px;font-weight:400;color:' + GRAY + ';text-decoration:none;">' + email + '</a></td></tr>' : '';
+  var phoneRow = (showPhone && phone) ? '<tr><td bgcolor="#ffffff" style="background:#ffffff;line-height:1.2;"><a href="tel:' + phone.replace(/[^+0-9]/g,'') + '" style="font-family:' + FS + ';font-size:12px;font-weight:400;color:' + GRAY + ';text-decoration:none;">' + phone + '</a></td></tr>' : '';
+
+  // Buttons — CTA 10px, LinkedIn 19px
+  var ctaBtn = '';
+  var liBtn  = '';
+  if (showCta && ctaUrl) {
+    ctaBtn = '<a href="' + ctaUrl + '" target="_blank" style="display:inline-block;background:' + PINK + ';color:#ffffff;font-family:' + FS + ';font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;padding:0 18px;line-height:28px;border-radius:5px;vertical-align:middle;">BOOK A MEETING</a>';
+  }
+  if (showLi && liUrl) {
+    liBtn = '<a href="' + liUrl + '" target="_blank" style="display:inline-block;vertical-align:middle;margin-left:' + (ctaBtn ? '9' : '0') + 'px;"><img src="' + LI_SVG + '" width="28" height="28" alt="LinkedIn" style="display:block;width:28px;height:28px;border:none;"></a>';
+  }
+  var btnsRow = (ctaBtn || liBtn) ? '<tr><td bgcolor="#ffffff" style="background:#ffffff;">' + ctaBtn + liBtn + '</td></tr>' : '';
+
+  // Text table (name through phone, no buttons)
+  var textRows = nameRow + sp(11) + titleRow;
+  if (emailRow) textRows += sp(11) + emailRow;
+  if (phoneRow) textRows += sp(8) + phoneRow;
+  var textTable = '<table cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="border-collapse:collapse;background:#ffffff;">' + textRows + '</table>';
+
+  // 2-ROW TABLE: logo and buttons in same row = guaranteed alignment
+  // Divider: gray #5E5F6C, spans both rows (extends slightly past content)
+  return '<table cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="border-collapse:collapse;background:#ffffff;">'
+    + '<tr>'
+    + '<td valign="top" bgcolor="#ffffff" width="100" style="width:100px;padding-right:15px;padding-top:8px;background:#ffffff;vertical-align:top;">' + avatar + '</td>'
+    + '<td width="1" rowspan="2" bgcolor="#5E5F6C" style="width:1px;padding:0;background-color:#5E5F6C;font-size:0;line-height:0;">&nbsp;</td>'
+    + '<td valign="top" bgcolor="#ffffff" style="padding-left:15px;padding-top:8px;background:#ffffff;vertical-align:top;">' + textTable + '</td>'
+    + '</tr>'
+    + '<tr>'
+    + '<td valign="bottom" bgcolor="#ffffff" align="center" style="padding-right:15px;padding-top:9px;padding-bottom:10px;background:#ffffff;vertical-align:bottom;text-align:center;">' + logo + '</td>'
+    + '<td valign="bottom" bgcolor="#ffffff" style="padding-left:15px;padding-top:9px;padding-bottom:10px;background:#ffffff;vertical-align:bottom;">' + (btnsRow ? '<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">' + btnsRow + '</table>' : '') + '</td>'
+    + '</tr>'
+    + '</table>'
+        + '<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin-top:8px;"><tr><td style="font-family:\'Poppins\',\'Century Gothic\',Arial,Helvetica,sans-serif;font-size:9px;color:#5E5F6C;line-height:14px;">*Starting April 2027, emails will come from @leantaas.com</td></tr></table>';
+}
+
+
+
+function buildPreview() {
+  var name = v("f-name");
+  var errEl = document.getElementById("form-err");
+  if (!name) { errEl.textContent = "Please enter at least your full name."; return; }
+  errEl.textContent = "";
+
+  var showPhoto = tog("photo");
+  var showPhone = tog("phone");
+  var showLi    = tog("li");
+  var showCta   = tog("cta");
+
+  var hostedUrl = showPhoto ? v("f-photo-url") : "";
+
+  lastHTMLpreview = buildSignature(name, v("f-title"), v("f-email"), v("f-phone"),
+    showPhoto ? (photoPreviewURI || hostedUrl || null) : null,
+    v("f-li"), v("f-cta"), showPhone, showLi, showCta, showPhoto);
+
+  lastHTMLoutput = buildSignature(name, v("f-title"), v("f-email"), v("f-phone"),
+    (showPhoto && hostedUrl) ? hostedUrl : null,
+    v("f-li"), v("f-cta"), showPhone, showLi, showCta, showPhoto);
+
+  document.getElementById("preview-box").innerHTML = lastHTMLpreview;
+  document.getElementById("code-out").textContent  = lastHTMLoutput;
+  document.getElementById("copy-msg").textContent  = "";
+
+  var cc = lastHTMLoutput.length;
+  var el = document.getElementById("char-count");
+  if (cc > 65535) {
+    el.className = "char-count over";
+    el.innerHTML = "\u2717 " + cc.toLocaleString() + " chars \u2014 over HubSpot limit (65,535).";
+  } else if (cc > 10000) {
+    el.className = "char-count warn";
+    el.innerHTML = "\u26a0 " + cc.toLocaleString() + " chars \u2014 safe for HubSpot, may be too long for Gmail.";
+  } else {
+    el.className = "char-count safe";
+    el.innerHTML = "\u2713 " + cc.toLocaleString() + " chars \u2014 safe for Gmail &amp; HubSpot";
+  }
+}
+
+function copyGmail() {
+  if (!lastHTMLoutput) { flash("&#9888; Click Build Preview first.", "err"); return; }
+  if (lastHTMLoutput.length > 10000) {
+    flash("&#9888; Too long for Gmail (" + lastHTMLoutput.length.toLocaleString() + " chars). Turn off the photo or use a shorter URL.", "err"); return;
+  }
+  if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+    try {
+      var blob = new Blob([lastHTMLoutput], {type:"text/html"});
+      navigator.clipboard.write([new ClipboardItem({"text/html": blob})])
+        .then(function(){ flash("&#10003; <strong>Rich text copied!</strong> Go to Gmail &rarr; Settings &rarr; Signature &rarr; paste with Ctrl+V", "ok"); })
+        .catch(fallbackGmail);
+      return;
+    } catch(e) {}
+  }
+  fallbackGmail();
+}
+
+function fallbackGmail() {
+  try {
+    var div = document.createElement("div");
+    div.contentEditable = "true";
+    div.style.cssText = "position:fixed;top:-9999px;left:-9999px;opacity:0;";
+    div.innerHTML = lastHTMLoutput;
+    document.body.appendChild(div);
+    var range = document.createRange();
+    range.selectNodeContents(div);
+    var sel = window.getSelection();
+    sel.removeAllRanges(); sel.addRange(range);
+    var ok = document.execCommand("copy");
+    sel.removeAllRanges();
+    document.body.removeChild(div);
+    flash(ok ? "&#10003; <strong>Rich text copied!</strong> Paste into Gmail Signature settings." : "&#10007; Copy failed.", ok ? "ok" : "err");
+  } catch(e) { flash("&#10007; Copy failed.", "err"); }
+}
+
+function copyHTML() {
+  if (!lastHTMLoutput) { flash("&#9888; Click Build Preview first.", "err"); return; }
+  var fontLink = '<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">';
+  var hubspotHTML = fontLink + lastHTMLoutput;
+  if (hubspotHTML.length > 65535) { flash("&#10007; Over HubSpot's 65,535 char limit.", "err"); return; }
+  var ta = document.getElementById("hidden-copy-ta");
+  ta.value = hubspotHTML;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(ta.value)
+      .then(function(){ flash("&#10003; <strong>HTML copied!</strong> (" + hubspotHTML.length.toLocaleString() + " chars) Paste into HubSpot signature HTML editor.", "ok"); })
+      .catch(function(){ legacyCopyHTML(ta); });
+  } else { legacyCopyHTML(ta); }
+}
+
+function legacyCopyHTML(ta) {
+  if (!ta) { ta = document.getElementById("hidden-copy-ta"); }
+  try {
+    ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;width:1px;height:1px;";
+    ta.focus(); ta.select(); ta.setSelectionRange(0, ta.value.length);
+    var ok = document.execCommand("copy");
+    ta.style.cssText = "display:none;";
+    flash(ok ? "&#10003; <strong>HTML copied!</strong>" : "&#10007; Copy failed.", ok ? "ok" : "err");
+  } catch(e) { flash("&#10007; Copy failed.", "err"); }
+}
+
+function flash(msg, type) {
+  var el = document.getElementById("copy-msg");
+  el.innerHTML = msg; el.className = "copy-msg " + type;
+  clearTimeout(el._t);
+  el._t = setTimeout(function(){ el.innerHTML = ""; el.className = "copy-msg"; }, 9000);
+}
+
+function downloadImage() {
+  if (!lastHTMLpreview && !lastHTMLoutput) { flash("&#9888; Click Build Preview first.", "err"); return; }
+
+  // Strip white backgrounds for transparent PNG
+  var htmlForRender = (lastHTMLpreview || lastHTMLoutput)
+    .replace(/bgcolor="#ffffff"/gi, '')
+    .replace(/bgcolor="#FFFFFF"/gi, '')
+    .replace(/background:#ffffff;?/gi, '')
+    .replace(/background:#FFFFFF;?/gi, '')
+    .replace(/background-color:#ffffff;?/gi, '')
+    .replace(/background-color:#FFFFFF;?/gi, '')
+    .replace(/background:white;?/gi, '');
+
+  var container = document.createElement("div");
+  container.style.cssText = "position:fixed;top:-9999px;left:-9999px;background:transparent;padding:0;";
+  container.innerHTML = htmlForRender;
+  document.body.appendChild(container);
+
+  // Scale output to exactly 400px wide (email signature benchmark) at 2x retina
+  var TARGET_PX = 400;
+  var naturalWidth = (container.firstElementChild || container).offsetWidth || TARGET_PX;
+  var renderScale = (TARGET_PX * 2) / naturalWidth;
+
+  html2canvas(container, {
+    backgroundColor: null,
+    scale: renderScale,
+    useCORS: true,
+    allowTaint: true,
+    logging: false
+  }).then(function(canvas) {
+    document.body.removeChild(container);
+    var link = document.createElement("a");
+    link.download = "aidin-signature.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    flash("&#10003; <strong>PNG downloaded!</strong> 400px wide, transparent background.", "ok");
+  }).catch(function(err) {
+    document.body.removeChild(container);
+    flash("&#10007; Download failed: " + err.message, "err");
+  });
+}
+</script>
+</body>
+</html>
